@@ -345,8 +345,11 @@
       if (bins.length) {
         try {
           const f = await soda("xubg-57si", {"$select": "bin,current_status,filing_date,cycle,qewi_bus_name",
-            "$where": `bin in(${bins.map(x => `'${x}'`).join(",")})`, "$order": "filing_date DESC", "$limit": "50"});
-          for (const r of f) { const k = String(r.bin).split(".")[0]; if (!facades[k]) facades[k] = r; }
+            "$where": `bin in(${bins.map(x => `'${x}'`).join(",")})`, "$limit": "200"});
+          // latest cycle wins, then latest filing date (some filings have no date)
+          const rank = r => [parseInt(r.cycle, 10) || 0, String(r.filing_date || "")];
+          const newer = (a, b) => { const x = rank(a), y = rank(b); return x[0] !== y[0] ? x[0] > y[0] : x[1] > y[1]; };
+          for (const r of f) { const k = String(r.bin).split(".")[0]; if (!facades[k] || newer(r, facades[k])) facades[k] = r; }
         } catch (e) { /* facade status is a bonus; the shed dates still show */ }
       }
       for (const j of active) out.appendChild(render(j, facades[String(pick(j.rows, "bin")).split(".")[0]]));
