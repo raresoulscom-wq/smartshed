@@ -90,10 +90,10 @@
   .price li { margin-bottom: 8px; }
 
   .policies { background: #f3f5f4; }
-  .policies details { border-bottom: 1px solid var(--line); padding: 16px 0; }
-  .policies summary { cursor: pointer; font-weight: 700; font-size: 19px; }
-  .policies details[open] summary { margin-bottom: 8px; }
-  .policies p, .policies li { max-width: 72ch; }
+  .faq details, .policies details { border-bottom: 1px solid var(--line); padding: 16px 0; }
+  .faq summary, .policies summary { cursor: pointer; font-weight: 700; font-size: 19px; }
+  .faq details[open] summary, .policies details[open] summary { margin-bottom: 8px; }
+  .faq p, .policies p, .policies li { max-width: 72ch; }
 
   footer { background: var(--shed-deep); color: #cfdcd3; padding: 40px 0; font-size: 15px; }
   footer a { color: #fff; }
@@ -116,6 +116,7 @@
     <nav aria-label="Main">
       <a href="#how">How it works</a>
       <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
       <a href="#policies" class="keep">Terms &amp; policies</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -199,6 +200,28 @@
         </ul>
         <p><a class="btn" href="https://t.me/smartshedbot?start=signup">Start the free 30-day trial</a></p>
       </div>
+    </div>
+  </section>
+
+  <section id="faq" class="faq">
+    <div class="wrap">
+      <h2 class="sec">Questions</h2>
+      <details><summary>What does the foreman actually do?</summary>
+        <p>Once a week, per shed, he sends one photo in Telegram with the shed's 4-character code and a short note, like "K7Q2 repointing 3rd floor." That's it. If he forgets, the bot reminds him on Thursday.</p></details>
+      <details><summary>What if we miss a week?</summary>
+        <p>Send the photo as soon as you can. Each entry shows the date it was actually sent, and the report lists any week with no entry so nothing is hidden from your engineer.</p></details>
+      <details><summary>How do I add a foreman?</summary>
+        <p>When you sign up, the bot gives you a sign-in link. Send it to each foreman; tapping it connects their Telegram to your sheds. There's no limit on foremen.</p></details>
+      <details><summary>What does the location check prove?</summary>
+        <p>After a photo, the foreman can share his location. We compare it with the shed's address from city permit data and note whether he was on site. It's what his phone reported, so it supports the record but doesn't prove what the photo shows.</p></details>
+      <details><summary>Can entries be changed later?</summary>
+        <p>No. Each entry is sealed the moment it arrives, and every report runs a check that would show if any entry had been edited or deleted since, by anyone, including us.</p></details>
+      <details><summary>Do you file the 90-day report with DOB?</summary>
+        <p>No. We send a draft built from your log three weeks before each renewal. Your registered design professional reviews it and files the real report. Tap "Mark as reviewed" in the email once they have it; if nobody does, we send one reminder a week before the permit expires.</p></details>
+      <details><summary>Are the penalty numbers exact?</summary>
+        <p>They're estimates from public DOB data, which often doesn't list a shed's length. Send /length and the code with the length in feet, for example /length K7Q2 100, to make yours exact. Check the permit in DOB NOW before acting on any date.</p></details>
+      <details><summary>How do I stop emails from you?</summary>
+        <p>Reply "unsubscribe" or "stop" to any email, or use your email app's Unsubscribe button. We stop within a day.</p></details>
     </div>
   </section>
 
