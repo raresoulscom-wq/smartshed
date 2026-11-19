@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shed penalty lookup | Smart Shed</title>
+<meta name="description" content="Free lookup for any NYC sidewalk shed: when it went up, when its permit renewal and progress report are due, and when Local Law 48 penalty rates rise.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --shed: #2c4a3b;
+    --shed-deep: #1f3529;
+    --pipe: #8a9298;
+    --paper: #ffffff;
+    --ink: #17201b;
+    --muted: #4c5a52;
+    --amber: #f2b705;
+    --line: #d5dcd7;
+    --warn: #9a2a14;
+    --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --body: "Public Sans", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 17px/1.6 var(--body); }
+  a { color: var(--shed); text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  .bar { background: var(--shed-deep); color: #e8eee9; }
+  .bar .wrap { display: flex; justify-content: space-between; align-items: center; height: 60px; gap: 16px; }
+  .brand { font: 700 26px/1 var(--display); letter-spacing: .02em; color: #fff; text-decoration: none; }
+  .bar nav a { color: #cfdcd3; text-decoration: none; margin-left: 20px; font-size: 15px; }
+  .bar nav a:hover { color: #fff; text-decoration: underline; }
+  .bar nav a[aria-current] { color: #fff; }
+
+  .hero { position: relative; background: var(--shed); color: #fff; overflow: hidden; }
+  .hero::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(90deg, transparent 0 239px, rgba(0,0,0,.18) 239px 241px); }
+  .hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 14px;
+    background: linear-gradient(var(--pipe), #6f777c); }
+  .hero .wrap { position: relative; display: grid; grid-template-columns: .9fr 1.1fr; gap: 48px; align-items: center;
+    padding-top: 56px; padding-bottom: 80px; }
+  .hero h1 { font: 700 clamp(40px, 5.4vw, 66px)/.95 var(--display); margin: 0 0 20px; }
+  .hero p { color: #e3ebe6; font-size: 19px; line-height: 1.5; max-width: 36ch; margin: 0; }
+
+  form.placard { background: #fff; color: var(--ink); border: 3px solid var(--ink); padding: 22px 24px 20px;
+    box-shadow: 10px 10px 0 rgba(0,0,0,.25); }
+  .placard h2 { font: 700 24px/1.1 var(--display); margin: 0 0 14px; padding-bottom: 10px; border-bottom: 2px solid var(--ink); }
+  .fields { display: grid; grid-template-columns: 7.5rem 1fr; gap: 12px 14px; }
+  .fields .full { grid-column: 1 / -1; }
+  label { display: block; font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+  input, select { width: 100%; font: 400 17px/1.3 var(--body); padding: 11px 12px; border: 2px solid var(--ink);
+    border-radius: 3px; background: #fff; color: var(--ink); }
+  button.go { margin-top: 16px; width: 100%; background: var(--amber); color: var(--ink); border: 0; border-radius: 4px;
+    font: 700 17px/1 var(--body); padding: 16px 20px; cursor: pointer; }
+  button.go:hover { background: #ffc81f; }
+  button.go[disabled] { opacity: .6; cursor: progress; }
+  .placard .foot { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+
+  main.results { padding-top: 56px; padding-bottom: 72px; }
+  .status { font-size: 18px; max-width: 70ch; }
+  .status.err { color: var(--warn); }
+  .suggest button { font: inherit; color: var(--shed); background: none; border: 0; padding: 0; text-decoration: underline;
+    text-underline-offset: 3px; cursor: pointer; }
+
+  article.shed { border-top: 4px solid var(--shed); padding-top: 20px; margin-top: 40px; display: grid;
+    grid-template-columns: 1fr 1fr; gap: 16px 48px; }
+  .shed h2 { grid-column: 1 / -1; font: 700 clamp(30px, 3.6vw, 42px)/1 var(--display); margin: 0; color: var(--shed-deep); }
+  .shed .meta { grid-column: 1 / -1; margin: -6px 0 8px; color: var(--muted); font-size: 15px; }
+  .shed h3 { font-size: 15px; color: var(--muted); font-weight: 600; margin: 0 0 6px; }
+
+  ol.dates { list-style: none; margin: 0; padding: 0; }
+  ol.dates li { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  ol.dates time { font-weight: 700; white-space: nowrap; }
+  ol.dates li.past { color: var(--muted); }
+  ol.dates li.past time { font-weight: 400; }
+  ol.dates li.soon time { color: var(--warn); }
+  ol.dates .when { display: block; font-size: 13px; font-weight: 400; color: var(--muted); text-align: right; }
+
+  .money { background: #f3f5f4; padding: 18px 20px; }
+  .money .row { display: flex; align-items: end; gap: 12px; margin: 6px 0 12px; }
+  .money .row div { flex: 0 0 9rem; }
+  .money output { display: block; font: 700 56px/.95 var(--display); color: var(--shed-deep); }
+  .money .per { font-size: 15px; color: var(--muted); margin: 4px 0 0; }
+  .money p { margin: 8px 0 0; font-size: 15px; }
+  .facade { margin-top: 18px; font-size: 15px; }
+  .facade strong.unsafe { color: var(--warn); }
+
+  .cta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin-top: 8px;
+    padding: 18px 20px; border: 2px solid var(--shed); }
+  .cta p { margin: 0; flex: 1 1 28ch; }
+  .btn { display: inline-block; background: var(--amber); color: var(--ink); font-weight: 700; text-decoration: none;
+    padding: 14px 22px; border-radius: 4px; }
+  .btn:hover { background: #ffc81f; }
+
+  .notes { border-top: 1px solid var(--line); padding-top: 48px; padding-bottom: 64px; }
+  .notes h2 { font: 700 30px/1 var(--display); margin: 0 0 12px; color: var(--shed-deep); }
+  .notes ul { margin: 0; padding-left: 20px; max-width: 72ch; }
+  .notes li { margin-bottom: 8px; }
+  footer { background: var(--shed-deep); color: #cfdcd3; padding: 32px 0; font-size: 15px; }
+  footer a { color: #fff; }
+
+  @media (max-width: 820px) {
+    .hero .wrap, article.shed { grid-template-columns: 1fr; }
+    .hero .wrap { padding-top: 40px; padding-bottom: 64px; gap: 32px; }
+    .bar nav a.hide-sm { display: none; }
+    main.results { padding-top: 40px; }
+  }
+  @media (max-width: 420px) { .fields { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="./">Smart Shed</a>
+    <nav aria-label="Main">
+      <a href="./#how" class="hide-sm">How it works</a>
+      <a href="./#pricing" class="hide-sm">Pricing</a>
+      <a href="lookup.html" aria-current="page">Shed lookup</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <h1>When does your shed start costing you?</h1>
+      <p>Enter a building address. We check today's DOB permit data and show when the shed went up, when the permit and progress report are due, and when Local Law 48 penalty rates rise.</p>
+    </div>
+    <form class="placard" id="f" autocomplete="off">
+      <h2>Sidewalk shed lookup</h2>
+      <div class="fields">
+        <div><label for="h">House number</label><input id="h" name="h" inputmode="text" placeholder="120" required maxlength="12"></div>
+        <div><label for="s">Street</label><input id="s" name="s" placeholder="Broadway" required maxlength="60"></div>
+        <div class="full"><label for="b">Borough</label>
+          <select id="b" name="b" required>
+            <option value="MANHATTAN">Manhattan</option>
+            <option value="BROOKLYN">Brooklyn</option>
+            <option value="QUEENS">Queens</option>
+            <option value="BRONX">Bronx</option>
+            <option value="STATEN ISLAND">Staten Island</option>
+          </select></div>
+      </div>
+      <button class="go" type="submit">Look up shed</button>
+      <p class="foot">Free. No sign-up. Data from NYC Open Data, checked live.</p>
+    </form>
+  </div>
+</div>
+
+<main class="results wrap" id="out" aria-live="polite">
+  <p class="status">Results show up here. Queens addresses keep their hyphen, like 37-10.</p>
+</main>
+
+<section class="notes wrap">
+  <h2>What this shows, and what it can't</h2>
+  <ul>
+    <li>Sheds come from DOB NOW: Build approved permits. A shed whose permit is only in the older BIS system won't appear.</li>
+    <li>Local Law 48 penalties apply after a shed has been up 180 days, for each month with no work in progress: $10, $100 or $200 per linear foot per month for sheds up under 3 years, 3 to 4 years, and over 4 years, capped at $6,000 a month. DOB expects to start imposing them in early 2027.</li>
+    <li>Public data can't tell whether work is in progress, so the dollar figure is what a month with no work could cost. It's an estimate, not legal advice.</li>
+    <li>Shed length is rarely on the permit. When the job description states it we fill it in; otherwise enter your frontage.</li>
+  </ul>
+</section>
+
+<footer>
+  <div class="wrap">Smart Shed, PO Box 268, New York, NY 10039. <a href="./#terms">Terms</a> &nbsp; <a href="./#privacy">Privacy</a> &nbsp; <a href="mailto:messagesmartshed@gmail.com">messagesmartshed@gmail.com</a></div>
+</footer>
+
+<script>
+(() => {
+  const API = "https://data.cityofnewyork.us/resource/";
+  const SIGNUP = "https://t.me/smartshedbot?start=signup_lookup";
+  const DAY = 86400000;
+  const BOROS = ["MANHATTAN", "BROOKLYN", "QUEENS", "BRONX", "STATEN ISLAND"];
+  const out = document.getElementById("out");
+  const form = document.getElementById("f");
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  // Street names in DOB data look like "WEST   23 STREET", "5 AVENUE", "ST MARKS AVENUE".
+  const SUFFIX = {ST:"STREET",STR:"STREET",AVE:"AVENUE",AV:"AVENUE",PL:"PLACE",BLVD:"BOULEVARD",RD:"ROAD",
+    DR:"DRIVE",PKWY:"PARKWAY",PKY:"PARKWAY",LN:"LANE",CT:"COURT",TER:"TERRACE",TERR:"TERRACE",SQ:"SQUARE",HWY:"HIGHWAY",
+    EXPY:"EXPRESSWAY",TPKE:"TURNPIKE",CIR:"CIRCLE",HTS:"HEIGHTS",BWAY:"BROADWAY"};
+  const DIR = {W:"WEST",E:"EAST",N:"NORTH",S:"SOUTH"};
+  const WORDNUM = {FIRST:"1",SECOND:"2",THIRD:"3",FOURTH:"4",FIFTH:"5",SIXTH:"6",SEVENTH:"7",EIGHTH:"8",NINTH:"9",
+    TENTH:"10",ELEVENTH:"11",TWELFTH:"12"};
+  function streetTokens(s) {
+    let t = String(s || "").toUpperCase().replace(/B'WAY/g, "BROADWAY").replace(/[^A-Z0-9 ]+/g, " ")
+      .replace(/\b(\d+)(ST|ND|RD|TH)\b/g, "$1").split(/\s+/).filter(Boolean);
+    t = t.map((w, i) => {
+      if (i === 0 && DIR[w] && t.length > 1) return DIR[w];
+      if (w === "ST" && i < t.length - 1) return "ST";      // ST MARKS = Saint, as DOB writes it
+      return SUFFIX[w] || WORDNUM[w] || w;
+    });
+    const j = t.join(" ");
+    if (j === "AVENUE OF THE AMERICAS") return ["6", "AVENUE"];
+    return t;
+  }
+  const streetMatches = (want, have) => { const h = new Set(streetTokens(have)); return want.every(w => h.has(w)); };
+  const niceStreet = s => String(s || "").replace(/\s+/g, " ").trim().toLowerCase().replace(/\b[a-z]/g, c => c.toUpperCase());
+
+  const parseDay = v => v ? new Date(String(v).slice(0, 10) + "T12:00:00") : null;
+  const addYears = (d, n) => { const x = new Date(d); x.setFullYear(x.getFullYear() + n);
+    if (x.getMonth() !== d.getMonth()) x.setDate(0); return x; };
+  const fmt = d => d.toLocaleDateString("en-US", {month: "short", day: "numeric", year: "numeric"});
+  const today = (() => { const d = new Date(); d.setHours(12, 0, 0, 0); return d; })();
+  function ago(from) {
+    let m = (today.getFullYear() - from.getFullYear()) * 12 + today.getMonth() - from.getMonth();
+    if (today.getDate() < from.getDate()) m--;
+    const y = Math.floor(m / 12), r = m % 12;
+    if (m < 1) return `${Math.max(0, Math.round((today - from) / DAY))} days`;
+    return [y ? `${y} year${y > 1 ? "s" : ""}` : "", r ? `${r} month${r > 1 ? "s" : ""}` : ""].filter(Boolean).join(" ");
+  }
+  function until(d) {
+    const n = Math.round((d - today) / DAY);
+    if (n === 0) return "today";
+    if (n < 0) return "passed";
+    return n < 60 ? `in ${n} day${n > 1 ? "s" : ""}` : `in about ${Math.round(n / 30.4)} months`;
+  }
+  const LEN = /(\d{1,4}(?:\.\d+)?)\s*(?:'|-)?\s*(?:L\.?\s?F\.?|LIN(?:EAR)?\.?\s*F(?:EE)?T|LINEAL\s*F(?:EE)?T|FT\.?\s*LONG|FEET\s*LONG)\b/gi;
+  function parseLength(desc) {
+    const v = [...String(desc || "").matchAll(LEN)].map(m => parseFloat(m[1])).filter(x => x >= 4 && x <= 2000);
+    return v.length ? Math.max(...v) : null;
+  }
+  const rate = (installed, on) => on >= addYears(installed, 4) ? 200 : on >= addYears(installed, 3) ? 100 : 10;
+
+  async function soda(dataset, params) {
+    const url = API + dataset + ".json?" + new URLSearchParams(params);
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`City data returned ${r.status}`);
+    return r.json();
+  }
+
+  function groupJobs(rows, wantStreet) {
+    const jobs = new Map();
+    for (const r of rows) {
+      if (!streetMatches(wantStreet, r.street_name)) continue;
+      const k = r.job_filing_number;
+      if (!k) continue;
+      const j = jobs.get(k) || {job: k, first: null, exp: null, signedOff: false, rows: []};
+      const iss = parseDay(r.issued_date), ex = parseDay(r.expired_date);
+      if (iss && (!j.first || iss < j.first)) j.first = iss;
+      if (ex && (!j.exp || ex > j.exp)) j.exp = ex;
+      if (r.permit_status === "Signed-off" && ex && ex >= today) j.signedOff = true;
+      j.rows.push(r);
+      jobs.set(k, j);
+    }
+    return [...jobs.values()].filter(j => j.first);
+  }
+  const pick = (rows, k) => { for (const r of rows) if (r[k]) return r[k]; return ""; };
+
+  function render(job, facade) {
+    const r0 = job.rows[0];
+    const addr = `${r0.house_no} ${niceStreet(r0.street_name)}`;
+    const bin = String(pick(job.rows, "bin")).split(".")[0];
+    const length = parseLength(job.rows.map(r => r.job_description).join(" "));
+    const d180 = new Date(job.first.getTime() + 180 * DAY);
+    const dates = [
+      {d: job.first, t: "Shed permit first issued"},
+      {d: d180, t: "180 days up: penalties can apply"},
+      {d: job.exp, t: "Permit expires: renewal and 90-day progress report due"},
+      {d: addYears(job.first, 3), t: "Rate rises to $100 per foot"},
+      {d: addYears(job.first, 4), t: "Rate rises to $200 per foot"},
+    ].filter(x => x.d).sort((a, b) => a.d - b.d);
+    const li = dates.map(x => {
+      const n = (x.d - today) / DAY;
+      const cls = n < 0 ? "past" : n <= 45 ? "soon" : "";
+      return `<li class="${cls}"><span>${esc(x.t)}</span><time datetime="${x.d.toISOString().slice(0, 10)}">${esc(fmt(x.d))}<span class="when">${esc(x === dates[0] ? ago(x.d) + " ago" : until(x.d))}</span></time></li>`;
+    }).join("");
+    const live = today >= d180;
+    const perFt = rate(job.first, today);
+    let fac = "";
+    if (facade) {
+      const st = (facade.current_status || "").toUpperCase();
+      fac = `<p class="facade">Latest facade (FISP) filing: <strong class="${st === "UNSAFE" ? "unsafe" : ""}">${esc(st || "status not listed")}</strong>`
+        + (facade.cycle ? `, cycle ${esc(facade.cycle)}` : "")
+        + (facade.filing_date ? `, filed ${esc(fmt(parseDay(facade.filing_date)))}` : "")
+        + (facade.qewi_bus_name ? `, by ${esc(facade.qewi_bus_name)}` : "") + ".</p>";
+    }
+    const id = "len-" + job.job.replace(/[^A-Za-z0-9]/g, "");
+    const el = document.createElement("article");
+    el.className = "shed";
+    el.innerHTML = `
+      <h2>${esc(addr)}</h2>
+      <p class="meta">Up ${esc(ago(job.first))}. Permit ${esc(job.job)}${bin ? `, BIN ${esc(bin)}` : ""}${pick(job.rows, "applicant_business_name") ? `. Filed by ${esc(pick(job.rows, "applicant_business_name"))}` : ""}.</p>
+      <div><h3>Key dates</h3><ol class="dates">${li}</ol></div>
+      <div>
+        <div class="money">
+          <h3>What a month with no work could cost</h3>
+          <div class="row">
+            <div><label for="${id}">Shed length (ft)</label><input id="${id}" type="number" min="1" max="2000" step="1" inputmode="numeric" value="${length || ""}" placeholder="e.g. 100"></div>
+          </div>
+          <output for="${id}">-</output>
+          <p class="per">${live ? `At $${perFt} per foot per month today, capped at $6,000.` : `Not yet: penalties can apply from ${esc(fmt(d180))}.`}</p>
+          <p>${length ? "Length taken from the permit's job description." : "The permit doesn't state the length. Enter your frontage to estimate."}</p>
+        </div>
+        ${fac}
+      </div>
+      <div class="cta"><p>Smart Shed logs this shed every week from one foreman photo, drafts the 90-day progress report, and warns you before each of these dates.</p>
+        <a class="btn" href="${SIGNUP}">Track it free for 30 days</a></div>`;
+    const inp = el.querySelector("input"), o = el.querySelector("output");
+    const calc = () => {
+      const ft = parseFloat(inp.value);
+      if (!live) { o.textContent = "$0"; return; }
+      o.textContent = ft > 0 ? "$" + Math.min(perFt * ft, 6000).toLocaleString("en-US") + " a month" : "Enter length";
+    };
+    inp.addEventListener("input", calc); calc();
+    return el;
+  }
+
+  async function lookup(h, s, b, push) {
+    const house = h.toUpperCase().replace(/\s+/g, "");
+    if (!BOROS.includes(b)) b = "MANHATTAN";
+    const want = streetTokens(s);
+    if (!/^[0-9A-Z-]{1,12}$/.test(house) || !want.length) {
+      out.innerHTML = `<p class="status err">Enter a house number (like 120 or 37-10) and a street name.</p>`; return;
+    }
+    if (push) history.replaceState(null, "", `?h=${encodeURIComponent(house)}&s=${encodeURIComponent(s)}&b=${encodeURIComponent(b)}`);
+    const btn = form.querySelector("button"); btn.disabled = true; btn.textContent = "Checking city data…";
+    out.innerHTML = `<p class="status">Checking DOB permits for ${esc(house)} ${esc(s)}, ${esc(b.toLowerCase())}…</p>`;
+    try {
+      const rows = await soda("rbx6-tga4", {
+        "$select": "job_filing_number,house_no,street_name,borough,bin,issued_date,expired_date,permit_status,applicant_business_name,job_description",
+        "$where": `work_type='Sidewalk Shed' AND house_no='${house}' AND upper(borough)='${b}'`,
+        "$limit": "3000"});
+      const jobs = groupJobs(rows, want);
+      const active = jobs.filter(j => j.exp && j.exp >= today && !j.signedOff).sort((a, b) => a.first - b.first);
+      out.innerHTML = "";
+      if (!active.length) {
+        const past = jobs.sort((a, b) => (b.exp || 0) - (a.exp || 0));
+        let msg = past.length
+          ? `No active sidewalk shed permit at ${esc(house)} ${esc(niceStreet(past[0].rows[0].street_name))}. The latest one ended ${esc(fmt(past[0].exp))}.`
+          : `No sidewalk shed permit found at ${esc(house)} ${esc(s)} in ${esc(b.toLowerCase())}.`;
+        const others = [...new Set(rows.filter(r => !streetMatches(want, r.street_name)).map(r => niceStreet(r.street_name)))].slice(0, 6);
+        if (!past.length && others.length)
+          msg += ` <span class="suggest">Sheds at ${esc(house)} on: ${others.map(o => `<button type="button" data-s="${esc(o)}">${esc(o)}</button>`).join(", ")}.</span>`;
+        out.innerHTML = `<p class="status">${msg}</p>`;
+        out.querySelectorAll("[data-s]").forEach(x => x.addEventListener("click", () => {
+          form.s.value = x.dataset.s; lookup(form.h.value, x.dataset.s, form.b.value, true); }));
+        return;
+      }
+      out.innerHTML = `<p class="status">${active.length === 1 ? "One active shed" : active.length + " active sheds"} at this address.</p>`;
+      const bins = [...new Set(active.map(j => String(pick(j.rows, "bin")).split(".")[0]).filter(x => /^\d{7}$/.test(x)))];
+      let facades = {};
+      if (bins.length) {
+        try {
+          const f = await soda("xubg-57si", {"$select": "bin,current_status,filing_date,cycle,qewi_bus_name",
+            "$where": `bin in(${bins.map(x => `'${x}'`).join(",")})`, "$order": "filing_date DESC", "$limit": "50"});
+          for (const r of f) { const k = String(r.bin).split(".")[0]; if (!facades[k]) facades[k] = r; }
+        } catch (e) { /* facade status is a bonus; the shed dates still show */ }
+      }
+      for (const j of active) out.appendChild(render(j, facades[String(pick(j.rows, "bin")).split(".")[0]]));
+    } catch (e) {
+      out.innerHTML = `<p class="status err">City data didn't answer (${esc(e.message)}). Try again in a minute.</p>`;
+    } finally {
+      btn.disabled = false; btn.textContent = "Look up shed";
+    }
+  }
+
+  form.addEventListener("submit", ev => { ev.preventDefault(); lookup(form.h.value, form.s.value, form.b.value, true); });
+  const q = new URLSearchParams(location.search);
+  if (q.get("h") && q.get("s")) {
+    form.h.value = q.get("h"); form.s.value = q.get("s");
+    if (BOROS.includes((q.get("b") || "").toUpperCase())) form.b.value = q.get("b").toUpperCase();
+    lookup(form.h.value, form.s.value, form.b.value, false);
+  }
+})();
+</script>
+</body>
+</html>
